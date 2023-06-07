@@ -33,3 +33,8 @@ rustup component add rustfmt
 ```bash
 cargo install cargo-audit
 ```
+### Macro Expansion
+
+```bash
+cargo install cargo-expand
+```
