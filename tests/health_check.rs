@@ -1,5 +1,8 @@
 use std::net::TcpListener;
 
+use email_newsletter::{startup::run, configuration::get_configuration};
+use sqlx::{PgConnection, Connection};
+
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
@@ -22,6 +25,12 @@ async fn health_check_works() {
 async fn subscribe_returns_a_200_for_valid_form_data() {
     // Arrange
     let app_address = spawn_app();
+    let configuration = get_configuration()
+        .expect("Failed to read configuration.");
+    let connection_string = configuration.database.connection_string();
+    let mut connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
     let client = reqwest::Client::new();
 
     // Act
@@ -36,6 +45,13 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 
     // Assert
     assert_eq!(200, response.status().as_u16());
+
+    let saved = sqlx::query!("SELECT email, name FROM subscriptions")
+        .fetch_one(&mut connection)
+        .await
+        .expect("Failed to fetch saved subscription.");
+    assert_eq!(saved.email, "ursula_le_guin@gmail.com");
+    assert_eq!(saved.name, "le guin");
 }
 
 #[tokio::test]
@@ -72,7 +88,7 @@ fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0")
         .expect("Failed to bind to random port");
     let port = listener.local_addr().unwrap().port();
-    let server = email_newsletter::run(listener)
+    let server = run(listener)
         .expect("Failed to bind address.");
     let _ = tokio::spawn(server);
     format!("http://127.0.0.1:{}", port)

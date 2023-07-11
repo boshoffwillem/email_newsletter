@@ -33,8 +33,15 @@ rustup component add rustfmt
 ```bash
 cargo install cargo-audit
 ```
+
 ### Macro Expansion
 
 ```bash
 cargo install cargo-expand
+```
+
+### Sqlx CLI
+
+```bash
+cargo install --version="~0.6" sqlx-cli --no-default-features --features rustls,postgres
 ```
