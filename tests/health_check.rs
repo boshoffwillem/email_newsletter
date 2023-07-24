@@ -1,7 +1,7 @@
 use std::net::TcpListener;
 
-use email_newsletter::{startup::run, configuration::get_configuration};
-use sqlx::{PgConnection, Connection};
+use email_newsletter::{configuration::get_configuration, startup::run};
+use sqlx::{Connection, PgConnection};
 
 #[tokio::test]
 async fn health_check_works() {
@@ -25,8 +25,7 @@ async fn health_check_works() {
 async fn subscribe_returns_a_200_for_valid_form_data() {
     // Arrange
     let app_address = spawn_app();
-    let configuration = get_configuration()
-        .expect("Failed to read configuration.");
+    let configuration = get_configuration().expect("Failed to read configuration.");
     let connection_string = configuration.database.connection_string();
     let mut connection = PgConnection::connect(&connection_string)
         .await
@@ -62,7 +61,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     let test_cases = vec![
         ("name=le%20guin", "missing the email"),
         ("email=ursula_le_guin%40gmail.com", "missing the name"),
-        ("", "missing both the name and the email")
+        ("", "missing both the name and the email"),
     ];
 
     for (invalid_body, error_message) in test_cases {
@@ -80,16 +79,15 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
             400,
             response.status().as_u16(),
             "The API did not fail with 400 Bad Request when the payload was {}.",
-            error_message);
+            error_message
+        );
     }
 }
 
 fn spawn_app() -> String {
-    let listener = TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to bind to random port");
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to random port");
     let port = listener.local_addr().unwrap().port();
-    let server = run(listener)
-        .expect("Failed to bind address.");
+    let server = run(listener).expect("Failed to bind address.");
     let _ = tokio::spawn(server);
     format!("http://127.0.0.1:{}", port)
 }
