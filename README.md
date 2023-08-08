@@ -45,3 +45,10 @@ cargo install cargo-expand
 ```bash
 cargo install --version="~0.6" sqlx-cli --no-default-features --features rustls,postgres
 ```
+
+### Code Audit
+
+```bash
+cargo install cargo-deny
+cargo deny check advisories
+```
